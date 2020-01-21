@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -10,6 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace AspNetCore3.ApiDocs
 {
@@ -25,12 +29,41 @@ namespace AspNetCore3.ApiDocs
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
             services.AddControllers();
+            services.AddSwaggerExamplesFromAssemblyOf<Startup>();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "AspNetCore3.ApiDocs", Version = "v1"});
+
+                c.ExampleFilters();
+
+                c.OperationFilter<AddHeaderOperationFilter>("correlationId", "Correlation Id for the request", false);
+                c.OperationFilter<AddResponseHeadersFilter>(); 
+
+                //var filePath = Path.Combine(AppContext.BaseDirectory, "WebApi.xml");
+                //c.IncludeXmlComments(filePath); // standard Swashbuckle functionality, this needs to be before c.OperationFilter<AppendAuthorizeToSummaryOperationFilter>()
+
+                c.OperationFilter<AppendAuthorizeToSummaryOperationFilter>(); 
+                // add Security information to each operation for OAuth2
+                c.OperationFilter<SecurityRequirementsOperationFilter>();
+
+                c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                {
+                    Description = "Standard Authorization header using the Bearer scheme. Example: \"bearer {token}\"",
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
