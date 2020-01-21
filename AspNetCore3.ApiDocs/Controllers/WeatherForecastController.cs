@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AspNetCore3.ApiDocs.Requests;
 using AspNetCore3.ApiDocs.Responses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -27,6 +27,9 @@ namespace AspNetCore3.ApiDocs.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Gets forecast for the next 5 days
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(GetWeatherForecastResponse), (int) HttpStatusCode.OK)]
         public IActionResult Get()
@@ -43,19 +46,6 @@ namespace AspNetCore3.ApiDocs.Controllers
             {
                 Forecast = forecast
             });
-        }
-    }
-
-   
-    [ApiController]
-    [Route("[controller]")]
-    public class EchoController : ControllerBase
-    {
-        [HttpPost]
-        [ProducesResponseType(typeof(EchoResponse), (int) HttpStatusCode.OK)]
-        public IActionResult Echo([FromBody] EchoRequest request)
-        {
-            return Ok(new EchoResponse { Echo = request.Echo });
         }
     }
 }

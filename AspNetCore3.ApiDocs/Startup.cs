@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,7 +30,6 @@ namespace AspNetCore3.ApiDocs
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
             services.AddSwaggerExamplesFromAssemblyOf<Startup>();
             services.AddSwaggerGen(c =>
@@ -39,14 +39,16 @@ namespace AspNetCore3.ApiDocs
                 c.ExampleFilters();
 
                 c.OperationFilter<AddHeaderOperationFilter>("correlationId", "Correlation Id for the request", false);
-                c.OperationFilter<AddResponseHeadersFilter>(); 
+                c.OperationFilter<AddResponseHeadersFilter>();
 
-                //var filePath = Path.Combine(AppContext.BaseDirectory, "WebApi.xml");
-                //c.IncludeXmlComments(filePath); // standard Swashbuckle functionality, this needs to be before c.OperationFilter<AppendAuthorizeToSummaryOperationFilter>()
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
 
                 c.OperationFilter<AppendAuthorizeToSummaryOperationFilter>(); 
                 // add Security information to each operation for OAuth2
                 c.OperationFilter<SecurityRequirementsOperationFilter>();
+
 
                 c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                 {
@@ -63,9 +65,9 @@ namespace AspNetCore3.ApiDocs
         {
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            app.UseReDoc(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SpecUrl = "/swagger/v1/swagger.json";
             });
 
             if (env.IsDevelopment())
