@@ -1,4 +1,5 @@
-﻿using AspNetCore3.ApiDocs.Responses;
+﻿using System.ComponentModel.DataAnnotations;
+using AspNetCore3.ApiDocs.Responses;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace AspNetCore3.ApiDocs.Requests
